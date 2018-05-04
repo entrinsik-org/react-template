@@ -1,15 +1,27 @@
 const hapi = require('hapi');
 const path = require('path');
 const fs = require('fs');
+const nconf = require('nconf');
 
-const server = hapi.server({ port: 3002 });
+// parse app app config
+const config = nconf
+  .argv()
+  .env('__')
+  .file(nconf.get('config') || 'config.json')
+  .defaults({
+    port: 8080,
+    server: 'http://localhost:3000',
+    auth: 'Basic YWRtaW46MTIz' // admin:123
+  })
+  .get();
 
+const server = hapi.server({ port: config.port });
 const auth = `Basic ${Buffer.from('admin:123').toString('base64')}`;
 
 const mapInformerRequest = path => req => ({
-  uri: `http://localhost:4000${path}/${req.params.p}${req.url.search}`,
+  uri: `${config.server}${path}/${req.params.p}${req.url.search}`,
   headers: {
-    Authorization: auth
+    Authorization: config.auth
   }
 });
 
@@ -78,6 +90,7 @@ async function init() {
 
   await server.start();
   console.log(`Server started at ${server.info.uri}`);
+  console.log(`Forwarding requests to ${config.server}`);
 }
 
 process.on('unhandledRejection', err => {

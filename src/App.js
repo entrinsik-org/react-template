@@ -17,21 +17,16 @@ class Gallery extends Component {
 
     return (
       <div>
-        <select onChange={this.handleIntervalChange}>
-          <option selected={interval === 'month'} value="month">
-            Month
-          </option>
-          <option selected={interval === 'year'} value="year">
-            Year
-          </option>
+        <select value={interval} onChange={this.handleIntervalChange}>
+          <option value="month">Month</option>
+          <option value="year">Year</option>
         </select>
-        <select onChange={this.handleChartTypeChange}>
-          <option selected={chartType === 'column'} value="column">
-            Column
-          </option>
-          <option selected={chartType === 'line'} value="line">
-            Line
-          </option>
+        <select value={chartType} onChange={this.handleChartTypeChange}>
+          <option value="column">Column</option>
+          <option value="line">Line</option>
+          <option value="spline">Spline</option>
+          <option value="spline">Spline</option>
+          <option value="areaspline">Areaspline</option>
         </select>
         <Trend
           dataset="admin:northwind-orders"
