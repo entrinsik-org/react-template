@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import Informer, { withComponents } from 'react-informer';
+import Informer, { withComponents, Pivot } from 'react-informer';
 
 class Gallery extends Component {
   state = { interval: 'month', chartType: 'line' };
@@ -12,7 +12,7 @@ class Gallery extends Component {
     this.setState({ chartType: event.target.value });
 
   render() {
-    const { Trend, Chart } = this.props.components;
+    const { Trend, Chart, Summary } = this.props.components;
     const { interval, chartType } = this.state;
 
     return (
@@ -39,6 +39,18 @@ class Gallery extends Component {
           chartType="pie"
           groupBy="ShipCountry"
           splitBy="ShipRegion"
+        />
+        <Summary
+          style={{ height: 400 }}
+          dataset="admin:northwind-orders"
+          groupColumns={['ShipCountry', 'ShipRegion']}
+          aggregateColumns={['sum:orderAmount', 'count']}
+        />
+        <Pivot
+          style={{ height: 400 }}
+          dataset="admin:northwind-orders"
+          rows={['ShipCountry', 'ShipRegion']}
+          columns={['OrderDate:month_of_year']}
         />
       </div>
     );

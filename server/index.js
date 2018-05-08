@@ -16,35 +16,51 @@ const config = nconf
   .get();
 
 const server = hapi.server({ port: config.port });
-const auth = `Basic ${Buffer.from('admin:123').toString('base64')}`;
 
-const mapInformerRequest = path => req => ({
-  uri: `${config.server}${path}/${req.params.p}${req.url.search}`,
-  headers: {
-    Authorization: config.auth
-  }
-});
+const mapInformerRequest = path => req => {
+  const subPath = req.params.p || '';
+  return {
+    uri: `${config.server}${path}/${subPath}${req.url.search}`,
+    headers: {
+      Authorization: config.auth
+    }
+  };
+};
+
+const proxyRoute = (path, method) => {
+  server.route({
+    method: method,
+    path: `${path}/{p*}`,
+    handler: {
+      proxy: {
+        xforward: true,
+        passThrough: true,
+        mapUri: mapInformerRequest(path),
+        ttl: 'upstream'
+      }
+    }
+  });
+};
+
+const routes = [
+  { path: '/api', method: ['get', 'post'] },
+  { path: '/v', method: 'get' },
+  { path: '/scripts', method: 'get' },
+  { path: '/styles', method: 'get' },
+  { path: '/jquery', method: 'get' },
+  { path: '/assets', method: 'get' },
+  { path: '/fonts', method: 'get' }
+];
 
 async function init() {
   await server.register({ plugin: require('h2o2') });
   await server.register({ plugin: require('inert') });
 
-  server.route({
-    method: 'get',
-    path: '/v/{p*}',
-    handler: {
-      proxy: {
-        xforward: true,
-        passThrough: true,
-        mapUri: mapInformerRequest('/v'),
-        ttl: 'upstream'
-      }
-    }
-  });
+  routes.forEach(({ path, method }) => proxyRoute(path, method));
 
   server.route({
-    method: ['get', 'post'],
-    path: '/api/{p*}',
+    method: 'get',
+    path: '/api',
     handler: {
       proxy: {
         xforward: true,
